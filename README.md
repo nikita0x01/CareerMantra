@@ -34,5 +34,5 @@ Career Mantra is a web-based platform built using **HTML, CSS, JavaScript**, and
 ##  How to Run Locally
    Clone the repository:
    ```bash
-   git clone https://github.com/your-username/career-mantra.git
+   git clone https://github.com/nikita0x01/CareerMantra.git
 
