@@ -4,17 +4,17 @@ Career Mantra is a web-based platform built using **HTML, CSS, JavaScript**, and
 
 ---
 
-## 🚀 Features
-- 🔍 **Personality Test** – Interactive quiz that recommends suitable career paths.  
-- 🎓 **E-Courses Platform** – Learn through curated course resources.  
-- 📊 **Skills Tracker** – Track your skill development and progress.  
-- 🛣️ **Roadmap to Goals** – Step-by-step guidance for your chosen career.  
-- 💼 **Job & Internship Hub** – Apply for jobs/internships directly.  
-- 🔥 **Firebase Integration** – Secure authentication & real-time database.
+##  Features
+-  **Personality Test** – Interactive quiz that recommends suitable career paths.  
+-  **E-Courses Platform** – Learn through curated course resources.  
+-  **Skills Tracker** – Track your skill development and progress.  
+-  **Roadmap to Goals** – Step-by-step guidance for your chosen career.  
+-  **Job & Internship Hub** – Apply for jobs/internships directly.  
+-  **Firebase Integration** – Secure authentication & real-time database.
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 - **HTML**
 - **CSS**
 - **JavaScript**
@@ -22,7 +22,7 @@ Career Mantra is a web-based platform built using **HTML, CSS, JavaScript**, and
 
 ---
 
-## 🔧 Firebase Setup
+##  Firebase Setup
 1. Go to **Firebase Console** and create a new project.  
 2. Enable **Authentication** → Email/Password or Google Sign-In.  
 3. Create a **Firestore** or **Realtime Database**.  
@@ -31,7 +31,7 @@ Career Mantra is a web-based platform built using **HTML, CSS, JavaScript**, and
 
 ---
 
-## ▶️ How to Run Locally
+##  How to Run Locally
    Clone the repository:
    ```bash
    git clone https://github.com/your-username/career-mantra.git
