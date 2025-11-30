@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Career Resources Portal</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #F5F5FA; color: #1A2A80; margin: 0; }
+  header { background: #1A2A80; color: #fff; padding: 15px; text-align: center; }
+  .section { max-width: 1000px; margin: auto; padding: 20px; }
+  h2 { text-align:center; }
+  .filter-buttons { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+  .filterBtn { padding: 8px 16px; background: #3B38A0; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 6px; }
+  .filterBtn:hover { background:#1A2A80; }
+  .badge { background:#FFD700; color:#000; padding:2px 6px; border-radius:4px; font-size:0.8em; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); gap: 20px; }
+  .card { background:#fff; padding:15px; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.1); }
+  .card h3 { margin-top:0; display:flex; align-items:center; gap:6px; }
+  .card p { margin:5px 0; }
+  .card a { color:#1A2A80; text-decoration:none; font-weight:bold; }
+  .card a:hover { text-decoration:underline; }
+  #loading { text-align:center; margin:20px 0; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Career Resources Portal</h1>
+</header>
+
+<section class="section">
+  <h2>Filter Resources by Field</h2>
+  <div class="filter-buttons">
+    <button class="filterBtn" data-field="analytical">🧠 Analytical</button>
+    <button class="filterBtn" data-field="creative">🎨 Creative</button>
+    <button class="filterBtn" data-field="introvert">🤐 Introvert</button>
+    <button class="filterBtn" data-field="extrovert">😃 Extrovert</button>
+  </div>
+  <div id="loading">Loading resources...</div>
+  <div id="resourceCards" class="cards"></div>
+</section>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// 🔹 Firebase config
+const firebaseConfig = {
+      apiKey: "AIzaSyCBfr5gR5pihZoSTvId8E5Ty_5RCL5MYhw",
+      authDomain: "auth-demo-37f58.firebaseapp.com",
+      projectId: "auth-demo-37f58",
+      storageBucket: "auth-demo-37f58.firebasestorage.app",
+      messagingSenderId: "799076361553",
+      appId: "1:799076361553:web:6ff356a4d894a27cfb9f70",
+      measurementId: "G-RPZBW0SCK5"
+    };
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const resourceDiv = document.getElementById("resourceCards");
+const loadingDiv = document.getElementById("loading");
+
+let resources = [];
+
+// Load resources from Firestore
+async function loadResources() {
+  try {
+    const snapshot = await getDocs(collection(db,"resources"));
+    resources = snapshot.docs.map(doc => {
+      const data = doc.data();
+      // Ensure default fields exist
+      return {
+        title: data.title || "Untitled",
+        description: data.description || "",
+        link: data.link || "#",
+        field: data.field || "general",
+        icon: data.icon || "📚"
+      };
+    });
+    loadingDiv.style.display = "none";
+    displayResources(resources);
+    // Auto-filter if redirected from results
+    const lastPersonality = localStorage.getItem("resourceFilter");
+    if(lastPersonality){
+      const btn = document.querySelector(`.filterBtn[data-field='${lastPersonality}']`);
+      if(btn) btn.click();
+      localStorage.removeItem("resourceFilter");
+    }
+  } catch(err) {
+    console.error("Error loading resources:", err);
+    loadingDiv.textContent = "Failed to load resources.";
+  }
+}
+
+// Display resources
+function displayResources(list){
+  resourceDiv.innerHTML = "";
+  if(list.length === 0){
+    resourceDiv.innerHTML = "<p style='text-align:center;'>No resources found for this category.</p>";
+    return;
+  }
+  list.forEach(res => {
+    const card = document.createElement("div");
+    card.className="card";
+    card.innerHTML = `
+      <h3>${res.icon} ${res.title} <span class="badge">${res.field}</span></h3>
+      <p>${res.description}</p>
+      <a href="${res.link}" target="_blank">Open Resource</a>
+    `;
+    resourceDiv.appendChild(card);
+  });
+}
+
+// Filter buttons
+document.querySelectorAll(".filterBtn").forEach(btn => {
+  btn.addEventListener("click", ()=>{
+    const field = btn.getAttribute("data-field");
+    const filtered = resources.filter(r=>r.field === field);
+    displayResources(filtered);
+  });
+});
+
+// Load all resources
+loadResources();
+</script>
+</body>
+</html>

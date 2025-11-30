@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CareerMantra - Personality Based Career Guidance System</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Arial', sans-serif; }
+  body { background: #f4f6fb; color: #1A2A80; }
+
+  header {
+    background: #1A2A80;
+    color: white;
+    text-align: center;
+    padding: 40px 20px;
+    position: relative;
+  }
+
+  .logo-heading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+  }
+
+  .logo-heading img {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+  }
+
+  h1 {
+    font-size: 2.2rem;
+    white-space: nowrap;
+    overflow: hidden;
+    display: inline-block;
+  }
+
+  .cursor {
+    display: inline-block;
+    width: 3px;
+    background: white;
+    margin-left: 2px;
+    animation: blink 0.7s steps(1) infinite;
+  }
+
+  @keyframes blink {
+    0%, 50%, 100% { opacity: 1; }
+    25%, 75% { opacity: 0; }
+  }
+
+  header p, .extra-info {
+    font-size: 1.1rem;
+    margin-top: 15px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    animation: fadeIn 2s ease forwards;
+  }
+
+  .extra-info {
+    font-size: 1rem;
+    margin-top: 10px;
+    color: #e0e0ff;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 12px 25px rgba(0,0,0,0.2);
+  }
+
+  .card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .card:hover img {
+    transform: scale(1.05);
+  }
+
+  .card-content {
+    padding: 20px;
+    text-align: center;
+  }
+
+  .card-content h3 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+  }
+
+  .card-content p {
+    font-size: 1rem;
+    color: #555;
+  }
+
+  .get-started {
+    display: block;
+    margin: 50px auto;
+    padding: 15px 40px;
+    font-size: 1.2rem;
+    background: #3B38A0;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.3s ease;
+  }
+
+  .get-started:hover {
+    background: #1A2A80;
+    transform: scale(1.05);
+  }
+
+  @media(max-width: 600px){
+    h1 { font-size: 1.8rem; }
+    .card img { height: 150px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-heading">
+    <img src="CareerLogo.png" alt="CareerMantra Logo">
+    <h1 id="animated-heading"></h1><span class="cursor"></span>
+  </div>
+  <p>Discover your strengths, plan your career, and achieve your goals with personalized guidance and resources.</p>
+  <div class="extra-info">
+    Take personality quizzes, track your skills, plan your goals, explore job & internship alerts, and unlock achievements tailored just for you.
+  </div>
+</header>
+
+<div class="container">
+  <div class="card">
+    <img src="career.jpg" alt="Career">
+    <div class="card-content">
+      <h3>Career Planning</h3>
+      <p>Explore career paths that match your personality and skills.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <img src="personality.jpg" alt="Personality">
+    <div class="card-content">
+      <h3>Personality Insights</h3>
+      <p>Understand your strengths and areas to improve with assessments.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <img src="mentorship.jpg" alt="Guidance">
+    <div class="card-content">
+      <h3>Mentorship</h3>
+      <p>Get guidance from experts to plan and execute your career strategy.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <img src="skilldev.jpg" alt="Learning">
+    <div class="card-content">
+      <h3>Skill Development</h3>
+      <p>Learn new skills and track progress to enhance your career opportunities.</p>
+    </div>
+  </div>
+</div>
+
+<button class="get-started" onclick="window.open('loginpage.html', '_blank')">Get Started</button>
+
+<script>
+const headingText = "CareerMantra - Personality Based Career Guidance System";
+const headingElement = document.getElementById("animated-heading");
+let index = 0;
+let typing = true;
+
+function typeEffect() {
+  if(typing){
+    headingElement.textContent = headingText.substring(0, index);
+    index++;
+    if(index > headingText.length){
+      typing = false;
+      setTimeout(typeEffect, 1500); // Pause at end
+      return;
+    }
+    setTimeout(typeEffect, 100);
+  } else {
+    headingElement.textContent = headingText.substring(0, index);
+    index--;
+    if(index < 0){
+      typing = true;
+      setTimeout(typeEffect, 500); // Pause at start
+      return;
+    }
+    setTimeout(typeEffect, 50);
+  }
+}
+
+window.onload = typeEffect;
+</script>
+
+</body>
+</html>

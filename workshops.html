@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Workshops & Seminars</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #F5F5FA; color: #1A2A80; margin: 0; }
+  header { background: #1A2A80; color: #fff; padding: 15px; text-align: center; }
+  .container { max-width: 900px; margin: auto; padding: 20px; }
+
+  h2 { text-align: center; }
+
+  form {
+    background: #fff; padding: 20px; border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 30px;
+  }
+  form input, form textarea, form button {
+    width: 100%; padding: 10px; margin: 8px 0;
+    border: 1px solid #ccc; border-radius: 6px;
+  }
+  form button {
+    background: #1A2A80; color: #fff; font-weight: bold; cursor: pointer;
+  }
+  form button:hover { background: #3B38A0; }
+
+  .cards { display: grid; grid-template-columns: repeat(auto-fit,minmax(260px,1fr)); gap: 20px; }
+  .card {
+    background: #fff; padding: 15px; border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    transition: transform .2s;
+  }
+  .card:hover { transform: translateY(-4px); }
+  .card h3 { margin: 0 0 8px; }
+  .card p { margin: 5px 0; }
+  .deleteBtn {
+    background: #E63946; color: #fff; padding: 6px 12px;
+    border: none; border-radius: 6px; cursor: pointer; margin-top: 10px;
+  }
+  .deleteBtn:hover { background: #b22234; }
+
+  #loginForm { margin-bottom: 20px; }
+  #logoutBtn {
+    background: #FF9800; color: #fff; padding: 8px 14px;
+    border: none; border-radius: 6px; cursor: pointer; float: right;
+  }
+  #logoutBtn:hover { background: #e68900; }
+  #error { color: red; text-align: center; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Workshops & Seminars</h1>
+  <button id="logoutBtn" style="display:none;">Logout</button>
+</header>
+
+<div class="container">
+  <div id="error"></div>
+
+  <!-- Login -->
+  <div id="loginSection">
+    <h2>Login</h2>
+    <form id="loginForm">
+      <input type="email" id="email" placeholder="Email" required>
+      <input type="password" id="password" placeholder="Password" required>
+      <button type="submit">Login</button>
+    </form>
+  </div>
+
+  <!-- User Workshops -->
+  <div id="workshopsSection" style="display:none;">
+    <h2>Add Your Workshop / Seminar</h2>
+    <form id="workshopForm">
+      <input type="text" id="title" placeholder="Workshop Title" required>
+      <textarea id="description" placeholder="Description" required></textarea>
+      <input type="date" id="date" required>
+      <input type="time" id="time" required>
+      <input type="text" id="location" placeholder="Location (Online/Offline)" required>
+      <input type="url" id="link" placeholder="Workshop Link (optional)">
+      <button type="submit">Add Workshop</button>
+    </form>
+
+    <h2>Your Workshops</h2>
+    <div id="userWorkshops" class="cards"></div>
+
+    <h2>Upcoming Global Seminars (Admin)</h2>
+    <div id="globalWorkshops" class="cards"></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+// 🔹 Firebase config
+const firebaseConfig = {
+      apiKey: "AIzaSyCBfr5gR5pihZoSTvId8E5Ty_5RCL5MYhw",
+      authDomain: "auth-demo-37f58.firebaseapp.com",
+      projectId: "auth-demo-37f58",
+      storageBucket: "auth-demo-37f58.firebasestorage.app",
+      messagingSenderId: "799076361553",
+      appId: "1:799076361553:web:6ff356a4d894a27cfb9f70",
+      measurementId: "G-RPZBW0SCK5"
+    };
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+const loginForm = document.getElementById("loginForm");
+const logoutBtn = document.getElementById("logoutBtn");
+const loginSection = document.getElementById("loginSection");
+const workshopsSection = document.getElementById("workshopsSection");
+const form = document.getElementById("workshopForm");
+const userDiv = document.getElementById("userWorkshops");
+const globalDiv = document.getElementById("globalWorkshops");
+const errorDiv = document.getElementById("error");
+
+let currentUser = null;
+
+// -----------------------------
+// Load User Workshops
+// -----------------------------
+async function loadUserWorkshops(uid) {
+  userDiv.innerHTML = "Loading...";
+  const snap = await getDocs(collection(db, `users/${uid}/workshops`));
+  userDiv.innerHTML = "";
+  snap.forEach(docSnap => {
+    const data = docSnap.data();
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <h3>${data.title}</h3>
+      <p>${data.description}</p>
+      <p><strong>Date:</strong> ${data.date}</p>
+      <p><strong>Time:</strong> ${data.time}</p>
+      <p><strong>Location:</strong> ${data.location}</p>
+      ${data.link ? `<p><a href="${data.link}" target="_blank">🔗 Join Here</a></p>` : ""}
+      <button class="deleteBtn" data-id="${docSnap.id}">Delete</button>
+    `;
+    card.querySelector(".deleteBtn").addEventListener("click", async () => {
+      await deleteDoc(doc(db, `users/${uid}/workshops`, docSnap.id));
+      loadUserWorkshops(uid);
+    });
+    userDiv.appendChild(card);
+  });
+}
+
+// -----------------------------
+// Load Global Seminars
+// -----------------------------
+async function loadGlobalWorkshops() {
+  const snap = await getDocs(collection(db, "workshops"));
+  globalDiv.innerHTML = "";
+  snap.forEach(docSnap => {
+    const data = docSnap.data();
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <h3>🌐 ${data.title}</h3>
+      <p>${data.description}</p>
+      <p><strong>Date:</strong> ${data.date}</p>
+      <p><strong>Time:</strong> ${data.time}</p>
+      <p><strong>Location:</strong> ${data.location}</p>
+      ${data.link ? `<p><a href="${data.link}" target="_blank">🔗 Join Here</a></p>` : ""}
+    `;
+    globalDiv.appendChild(card);
+  });
+}
+
+// -----------------------------
+// Add Workshop
+// -----------------------------
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!currentUser) {
+    alert("Please log in first.");
+    return;
+  }
+
+  const newWorkshop = {
+    title: document.getElementById("title").value,
+    description: document.getElementById("description").value,
+    date: document.getElementById("date").value,
+    time: document.getElementById("time").value,
+    location: document.getElementById("location").value,
+    link: document.getElementById("link").value || null
+  };
+
+  await addDoc(collection(db, `users/${currentUser.uid}/workshops`), newWorkshop);
+  form.reset();
+  loadUserWorkshops(currentUser.uid);
+});
+
+// -----------------------------
+// Auth: Login
+// -----------------------------
+loginForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    errorDiv.innerHTML = "";
+  } catch (err) {
+    errorDiv.innerHTML = "❌ " + err.message;
+  }
+});
+
+// -----------------------------
+// Auth: State Listener
+// -----------------------------
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    currentUser = user;
+    loginSection.style.display = "none";
+    workshopsSection.style.display = "block";
+    logoutBtn.style.display = "inline-block";
+    loadUserWorkshops(user.uid);
+    loadGlobalWorkshops();
+  } else {
+    currentUser = null;
+    loginSection.style.display = "block";
+    workshopsSection.style.display = "none";
+    logoutBtn.style.display = "none";
+  }
+});
+
+// -----------------------------
+// Logout
+// -----------------------------
+logoutBtn.addEventListener("click", async () => {
+  await signOut(auth);
+});
+</script>
+</body>
+</html>

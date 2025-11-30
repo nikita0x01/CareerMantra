@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Career Goals Planner - CareerMantra</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #F5F5FA; margin: 0; color: #1A2A80; }
+    header { background: #1A2A80; color: white; text-align: center; padding: 15px; }
+    h2 { text-align: center; }
+    .section { max-width: 900px; margin: 20px auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    form { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; justify-content: center; }
+    input, select { padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
+    button { padding: 10px 20px; border: none; background: #3B38A0; color: white; border-radius: 6px; font-weight: bold; cursor: pointer; }
+    button:hover { background: #1A2A80; }
+    .goal { margin-bottom: 20px; padding: 15px; border-left: 5px solid #3B38A0; background: #f0f0ff; border-radius: 8px; }
+    .goal h3 { margin: 0 0 5px 0; color: #3B38A0; }
+    .milestones { margin-left: 20px; }
+    .milestones label { display: flex; align-items: center; margin: 5px 0; }
+    .milestones input[type="checkbox"] { margin-right: 8px; }
+    .progress-container { background: #ddd; border-radius: 6px; height: 12px; margin-top: 10px; }
+    .progress-bar { height: 12px; border-radius: 6px; background: #3B38A0; width: 0%; transition: width 0.3s ease; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Career Goals Planner</h1>
+  <p id="userInfo"></p>
+  <button onclick="logout()">Logout</button>
+</header>
+
+<section class="section">
+  <h2>Plan Your Goals</h2>
+  <form id="goalForm">
+    <input type="text" id="goalTitle" placeholder="Enter Goal" required>
+    <select id="goalType">
+      <option value="Short-term">Short-term</option>
+      <option value="Long-term">Long-term</option>
+    </select>
+    <input type="text" id="milestonesInput" placeholder="Milestones (comma separated)">
+    <button type="button" onclick="addGoal()">Add Goal</button>
+  </form>
+
+  <div id="goalsList"></div>
+</section>
+
+<!-- ✅ Firebase Modular SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  // ✅ Replace with your Firebase config
+  const firebaseConfig = {
+    apiKey: "AIzaSyCBfr5gR5pihZoSTvId8E5Ty_5RCL5MYhw",
+    authDomain: "auth-demo-37f58.firebaseapp.com",
+    projectId: "auth-demo-37f58",
+    storageBucket: "auth-demo-37f58.appspot.com",
+    messagingSenderId: "799076361553",
+    appId: "1:799076361553:web:6ff356a4d894a27cfb9f70",
+    measurementId: "G-RPZBW0SCK5"
+  };
+
+  // Init Firebase
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  let currentUser = null;
+
+  // 🔹 Auth check
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      currentUser = user;
+      document.getElementById("userInfo").textContent = "Logged in as: " + user.email;
+      loadGoals();
+    } else {
+      window.location.href = "loginPage.html";
+    }
+  });
+
+  // 🔹 Load goals
+  async function loadGoals() {
+    const goalsList = document.getElementById("goalsList");
+    goalsList.innerHTML = "<p>Loading your goals...</p>";
+
+    const querySnapshot = await getDocs(collection(db, "users", currentUser.uid, "goals"));
+
+    if (querySnapshot.empty) {
+      goalsList.innerHTML = "<p style='text-align:center;'>No goals added yet!</p>";
+      return;
+    }
+
+    goalsList.innerHTML = "";
+    querySnapshot.forEach((docSnap) => {
+      const goal = docSnap.data();
+      const goalId = docSnap.id;
+
+      let completedCount = 0;
+      let milestonesHTML = "";
+
+      (goal.milestones || []).forEach((m, i) => {
+        if (m.done) completedCount++;
+        milestonesHTML += `
+          <label>
+            <input type="checkbox" ${m.done ? "checked" : ""} 
+              onchange="toggleMilestone('${goalId}', ${i})"> ${m.text}
+          </label>`;
+      });
+
+      const progress = goal.milestones && goal.milestones.length > 0
+        ? Math.round((completedCount / goal.milestones.length) * 100)
+        : 0;
+
+      const goalDiv = document.createElement("div");
+      goalDiv.className = "goal";
+      goalDiv.innerHTML = `
+        <h3>${goal.title} <small>(${goal.type})</small></h3>
+        <div class="milestones">${milestonesHTML}</div>
+        <div class="progress-container"><div class="progress-bar" style="width:${progress}%"></div></div>
+        <p>${progress}% completed</p>
+        <button onclick="deleteGoal('${goalId}')" style="margin-top:10px;background:#FF4C4C;">Delete Goal</button>
+      `;
+      goalsList.appendChild(goalDiv);
+    });
+  }
+
+  // 🔹 Add goal
+  window.addGoal = async function () {
+    const title = document.getElementById("goalTitle").value.trim();
+    const type = document.getElementById("goalType").value;
+    const milestonesInput = document.getElementById("milestonesInput").value.trim();
+
+    if (!title) { alert("Please enter a goal!"); return; }
+
+    const milestones = milestonesInput 
+      ? milestonesInput.split(",").map(m => ({ text: m.trim(), done: false })) 
+      : [];
+
+    await addDoc(collection(db, "users", currentUser.uid, "goals"), {
+      title, type, milestones
+    });
+
+    document.getElementById("goalForm").reset();
+    loadGoals();
+  };
+
+  // 🔹 Toggle milestone
+  window.toggleMilestone = async function (goalId, milestoneIndex) {
+    const goalRef = doc(db, "users", currentUser.uid, "goals", goalId);
+    const goalSnap = await getDoc(goalRef);
+    const goal = goalSnap.data();
+
+    goal.milestones[milestoneIndex].done = !goal.milestones[milestoneIndex].done;
+
+    await updateDoc(goalRef, { milestones: goal.milestones });
+    loadGoals();
+  };
+
+  // 🔹 Delete goal
+  window.deleteGoal = async function (goalId) {
+    if (confirm("Are you sure you want to delete this goal?")) {
+      await deleteDoc(doc(db, "users", currentUser.uid, "goals", goalId));
+      loadGoals();
+    }
+  };
+
+  // 🔹 Logout
+  window.logout = function () {
+    signOut(auth);
+  };
+</script>
+</body>
+</html>

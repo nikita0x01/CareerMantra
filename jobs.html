@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jobs & Internship Alerts</title>
+<style>
+  body { font-family: Arial, sans-serif; background:#f4f6fb; margin:0; color:#333; }
+  header { background:#1A2A80; color:#fff; padding:15px; text-align:center; }
+  h2 { color:#1A2A80; margin-top:30px; }
+  .container { max-width:1000px; margin:auto; padding:20px; }
+  .form { background:#fff; padding:20px; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.1); margin-bottom:30px; }
+  .form input, .form textarea { width:100%; padding:10px; margin:8px 0; border:1px solid #ccc; border-radius:8px; }
+  .form button { background:#1A2A80; color:#fff; border:none; padding:10px 16px; border-radius:8px; cursor:pointer; margin-right:10px; }
+  .form button:hover { background:#0f1d52; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:20px; }
+  .card { background:#fff; padding:15px; border-radius:12px; box-shadow:0 3px 8px rgba(0,0,0,0.1); }
+  .card h3 { margin-top:0; color:#1A2A80; }
+  .card p { margin:5px 0; }
+  .card a { color:#3B38A0; text-decoration:none; font-weight:bold; }
+  .card a:hover { text-decoration:underline; }
+  .deleteBtn { background:#e74c3c; color:#fff; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; margin-top:10px; }
+  .deleteBtn:hover { background:#c0392b; }
+  .updateBtn { background:#27ae60; color:#fff; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; margin-top:10px; margin-right:8px; }
+  .updateBtn:hover { background:#1e8449; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Jobs & Internship Alerts</h1>
+</header>
+
+<div class="container">
+
+  <!-- Add Job Form -->
+  <div class="form">
+    <h2 id="formTitle">Add Your Job Alert</h2>
+    <input type="text" id="jobTitle" placeholder="Job Title">
+    <input type="text" id="company" placeholder="Company">
+    <input type="date" id="date">
+    <input type="text" id="location" placeholder="Location">
+    <input type="url" id="link" placeholder="Job/Internship Link">
+    <textarea id="description" placeholder="Description"></textarea>
+    <button id="addJob">Add Job</button>
+    <button id="updateJob" style="display:none;">Update Job</button>
+  </div>
+
+  <!-- User Jobs -->
+  <h2>Your Jobs</h2>
+  <div id="jobsList" class="cards"></div>
+
+  <!-- Admin Internships -->
+  <h2>Internships from Admin</h2>
+  <div id="internshipsList" class="cards"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// 🔹 Firebase Config
+const firebaseConfig = {
+      apiKey: "AIzaSyCBfr5gR5pihZoSTvId8E5Ty_5RCL5MYhw",
+      authDomain: "auth-demo-37f58.firebaseapp.com",
+      projectId: "auth-demo-37f58",
+      storageBucket: "auth-demo-37f58.firebasestorage.app",
+      messagingSenderId: "799076361553",
+      appId: "1:799076361553:web:6ff356a4d894a27cfb9f70",
+      measurementId: "G-RPZBW0SCK5"
+    };
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const addJobBtn = document.getElementById("addJob");
+const updateJobBtn = document.getElementById("updateJob");
+const jobsList = document.getElementById("jobsList");
+const internshipsList = document.getElementById("internshipsList");
+
+let currentUser = null;
+let editJobId = null;
+
+// -------------------- AUTH --------------------
+onAuthStateChanged(auth, (user) => {
+  if(user){
+    currentUser = user;
+    loadUserJobs();
+    loadInternships();
+  } else {
+    alert("Please login to manage your jobs!");
+  }
+});
+
+// -------------------- ADD JOB --------------------
+addJobBtn.addEventListener("click", async ()=>{
+  if(!currentUser) { alert("You must be logged in"); return; }
+
+  const job = getFormData();
+  if(!job.title || !job.company){ alert("Please fill all required fields"); return; }
+
+  await addDoc(collection(db, "users", currentUser.uid, "jobs"), job);
+  alert("Job added!");
+  clearForm();
+  loadUserJobs();
+});
+
+// -------------------- UPDATE JOB --------------------
+updateJobBtn.addEventListener("click", async ()=>{
+  if(!editJobId) return;
+
+  const job = getFormData();
+  await updateDoc(doc(db, "users", currentUser.uid, "jobs", editJobId), job);
+
+  alert("Job updated!");
+  clearForm();
+  loadUserJobs();
+
+  // switch back to Add mode
+  document.getElementById("formTitle").innerText = "Add Your Job Alert";
+  addJobBtn.style.display = "inline-block";
+  updateJobBtn.style.display = "none";
+  editJobId = null;
+});
+
+// -------------------- LOAD USER JOBS --------------------
+async function loadUserJobs(){
+  jobsList.innerHTML = "";
+  const snapshot = await getDocs(collection(db, "users", currentUser.uid, "jobs"));
+  snapshot.forEach(docSnap=>{
+    const job = docSnap.data();
+    const div = document.createElement("div");
+    div.className = "card";
+    div.innerHTML = `
+      <h3>${job.title}</h3>
+      <p><b>Company:</b> ${job.company}</p>
+      <p><b>Date:</b> ${job.date || "N/A"}</p>
+      <p><b>Location:</b> ${job.location || "N/A"}</p>
+      <p>${job.description || ""}</p>
+      <a href="${job.link}" target="_blank">Apply Here</a><br>
+      <button class="updateBtn" data-id="${docSnap.id}">Update</button>
+      <button class="deleteBtn" data-id="${docSnap.id}">Delete</button>
+    `;
+    jobsList.appendChild(div);
+
+    // delete handler
+    div.querySelector(".deleteBtn").addEventListener("click", async ()=>{
+      await deleteDoc(doc(db, "users", currentUser.uid, "jobs", docSnap.id));
+      loadUserJobs();
+    });
+
+    // update handler
+    div.querySelector(".updateBtn").addEventListener("click", ()=>{
+      fillForm(job);
+      editJobId = docSnap.id;
+      document.getElementById("formTitle").innerText = "Update Job";
+      addJobBtn.style.display = "none";
+      updateJobBtn.style.display = "inline-block";
+    });
+  });
+}
+
+// -------------------- LOAD ADMIN INTERNSHIPS --------------------
+async function loadInternships(){
+  internshipsList.innerHTML = "";
+  const snapshot = await getDocs(collection(db, "internships"));
+  snapshot.forEach(docSnap=>{
+    const intern = docSnap.data();
+    const div = document.createElement("div");
+    div.className = "card";
+    div.innerHTML = `
+      <h3>${intern.title}</h3>
+      <p><b>Company:</b> ${intern.company}</p>
+      <p><b>Date:</b> ${intern.date}</p>
+      <p><b>Location:</b> ${intern.location}</p>
+      <p>${intern.description}</p>
+      <a href="${intern.link}" target="_blank">Apply Here</a>
+    `;
+    internshipsList.appendChild(div);
+  });
+}
+
+// -------------------- HELPERS --------------------
+function getFormData(){
+  return {
+    title: document.getElementById("jobTitle").value,
+    company: document.getElementById("company").value,
+    date: document.getElementById("date").value,
+    location: document.getElementById("location").value,
+    link: document.getElementById("link").value,
+    description: document.getElementById("description").value
+  };
+}
+
+function fillForm(job){
+  document.getElementById("jobTitle").value = job.title;
+  document.getElementById("company").value = job.company;
+  document.getElementById("date").value = job.date;
+  document.getElementById("location").value = job.location;
+  document.getElementById("link").value = job.link;
+  document.getElementById("description").value = job.description;
+}
+
+function clearForm(){
+  document.getElementById("jobTitle").value = "";
+  document.getElementById("company").value = "";
+  document.getElementById("date").value = "";
+  document.getElementById("location").value = "";
+  document.getElementById("link").value = "";
+  document.getElementById("description").value = "";
+}
+</script>
+</body>
+</html>

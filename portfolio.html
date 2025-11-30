@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Portfolio - CareerMantra</title>
+<style>
+  body { font-family: Arial, sans-serif; margin:0; background:#F5F5FA; color:#1A2A80; }
+  header { background:#1A2A80; color:#fff; padding:15px; text-align:center; }
+  .container { max-width:950px; margin:20px auto; padding:20px; }
+  h2 { text-align:center; margin-bottom:20px; }
+  form { background:#fff; padding:20px; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.1); display:grid; grid-template-columns:1fr 1fr; gap:15px; }
+  input, textarea { padding:10px; border-radius:6px; border:1px solid #ccc; font-size:14px; width:100%; }
+  textarea { grid-column: span 2; resize:vertical; }
+  button { grid-column: span 2; padding:10px; background:#3B38A0; color:#fff; border:none; border-radius:6px; font-weight:bold; cursor:pointer; transition:0.3s; }
+  button:hover { background:#1A2A80; }
+  #portfolioList { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:20px; margin-top:30px; }
+  .portfolio-card { background:#fff; border-radius:12px; padding:15px; box-shadow:0 4px 15px rgba(0,0,0,0.1); position:relative; opacity:0; transform:translateY(30px); animation:fadeUp 0.5s forwards; }
+  .portfolio-card h3 { margin-top:0; color:#3B38A0; }
+  .portfolio-card p { margin:5px 0; }
+  .portfolio-card a { color:#1A2A80; text-decoration:none; font-weight:bold; }
+  .portfolio-card a:hover { text-decoration:underline; }
+  .deleteBtn { background:#e74c3c; color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; position:absolute; top:10px; right:10px; }
+  .deleteBtn:hover { background:#c0392b; }
+  .updateBtn { background:#28a745; color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; position:absolute; top:10px; right:90px; }
+  .updateBtn:hover { background:#218838; }
+  @keyframes fadeUp { to { opacity:1; transform:translateY(0); } }
+</style>
+</head>
+<body>
+<header>
+  <h1>My Portfolio</h1>
+</header>
+
+<div class="container">
+  <h2>Add / Update Portfolio Entry</h2>
+  <form id="portfolioForm">
+    <input type="text" id="title" placeholder="Project/Portfolio Title" required>
+    <textarea id="description" placeholder="Project Description"></textarea>
+    <input type="text" id="skills" placeholder="Skills (comma separated)">
+    <input type="text" id="tools" placeholder="Tools/Technologies Used">
+    <input type="text" id="link" placeholder="Project Link">
+    <input type="text" id="duration" placeholder="Duration">
+    <input type="text" id="role" placeholder="Your Role">
+    <input type="text" id="team" placeholder="Team Members">
+    <input type="text" id="outcome" placeholder="Outcome / Achievement">
+    <button type="button" id="saveBtn">Save Portfolio</button>
+  </form>
+
+  <h2>Your Portfolio</h2>
+  <div id="portfolioList"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// Firebase Config
+const firebaseConfig = {
+  apiKey: "AIzaSyCBfr5gR5pihZoSTvId8E5Ty_5RCL5MYhw",
+  authDomain: "auth-demo-37f58.firebaseapp.com",
+  projectId: "auth-demo-37f58",
+  storageBucket: "auth-demo-37f58.appspot.com",
+  messagingSenderId: "799076361553",
+  appId: "1:799076361553:web:6ff356a4d894a27cfb9f70"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser = null;
+let updateId = null; // store ID of portfolio entry being updated
+
+const portfolioForm = document.getElementById("portfolioForm");
+const portfolioList = document.getElementById("portfolioList");
+const saveBtn = document.getElementById("saveBtn");
+
+// Auth check
+onAuthStateChanged(auth, user=>{
+  if(user){
+    currentUser = user;
+    loadPortfolio();
+  } else {
+    alert("Please log in to manage your portfolio");
+    window.location.href = "loginPage.html";
+  }
+});
+
+// Save or Update Portfolio
+saveBtn.addEventListener("click", async ()=>{
+  if(!currentUser) return;
+
+  const data = {
+    title: document.getElementById("title").value.trim(),
+    description: document.getElementById("description").value.trim(),
+    skills: document.getElementById("skills").value.trim(),
+    tools: document.getElementById("tools").value.trim(),
+    link: document.getElementById("link").value.trim(),
+    duration: document.getElementById("duration").value.trim(),
+    role: document.getElementById("role").value.trim(),
+    team: document.getElementById("team").value.trim(),
+    outcome: document.getElementById("outcome").value.trim(),
+    timestamp: new Date()
+  };
+
+  if(!data.title){ alert("Title is required"); return; }
+
+  if(updateId){ 
+    await updateDoc(doc(db,"users",currentUser.uid,"portfolio",updateId), data);
+    updateId = null;
+    saveBtn.textContent = "Save Portfolio";
+  } else {
+    await addDoc(collection(db,"users",currentUser.uid,"portfolio"), data);
+  }
+
+  portfolioForm.reset();
+  loadPortfolio();
+});
+
+// Load Portfolio
+async function loadPortfolio(){
+  portfolioList.innerHTML = "";
+  const snapshot = await getDocs(collection(db,"users",currentUser.uid,"portfolio"));
+  if(snapshot.empty){
+    portfolioList.innerHTML = "<p style='text-align:center;'>No portfolio entries yet!</p>";
+    return;
+  }
+
+  snapshot.forEach(docSnap=>{
+    const data = docSnap.data();
+    const card = document.createElement("div");
+    card.className = "portfolio-card";
+    card.innerHTML = `
+      <h3>${data.title}</h3>
+      <p>${data.description}</p>
+      ${data.skills ? `<p><b>Skills:</b> ${data.skills}</p>` : ""}
+      ${data.tools ? `<p><b>Tools:</b> ${data.tools}</p>` : ""}
+      ${data.link ? `<a href="${data.link}" target="_blank">Project Link</a>` : ""}
+      ${data.duration ? `<p><b>Duration:</b> ${data.duration}</p>` : ""}
+      ${data.role ? `<p><b>Role:</b> ${data.role}</p>` : ""}
+      ${data.team ? `<p><b>Team:</b> ${data.team}</p>` : ""}
+      ${data.outcome ? `<p><b>Outcome:</b> ${data.outcome}</p>` : ""}
+      <button class="updateBtn">Update</button>
+      <button class="deleteBtn">Delete</button>
+    `;
+    portfolioList.appendChild(card);
+
+    // Delete
+    card.querySelector(".deleteBtn").addEventListener("click", async ()=>{
+      if(confirm("Delete this portfolio entry?")){
+        await deleteDoc(doc(db,"users",currentUser.uid,"portfolio",docSnap.id));
+        loadPortfolio();
+      }
+    });
+
+    // Update
+    card.querySelector(".updateBtn").addEventListener("click", ()=>{
+      document.getElementById("title").value = data.title;
+      document.getElementById("description").value = data.description;
+      document.getElementById("skills").value = data.skills;
+      document.getElementById("tools").value = data.tools;
+      document.getElementById("link").value = data.link;
+      document.getElementById("duration").value = data.duration;
+      document.getElementById("role").value = data.role;
+      document.getElementById("team").value = data.team;
+      document.getElementById("outcome").value = data.outcome;
+      updateId = docSnap.id;
+      saveBtn.textContent = "Update Portfolio";
+    });
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CareerMantra 2.0 - Big 5 Personality Test</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { 
+    margin: 0; 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    color: #333;
+  }
+  header { 
+    background: linear-gradient(135deg, #1A2A80 0%, #3B38A0 100%);
+    color: #fff; 
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  }
+  header h1 { font-size: 2rem; margin-bottom: 5px; }
+  header p { opacity: 0.9; font-size: 0.9rem; }
+  .section { 
+    padding: 40px 20px; 
+    max-width: 1000px; 
+    margin: auto; 
+  }
+  .intro-card {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    animation: fadeInUp 0.6s ease;
+  }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .intro-card h2 { 
+    color: #1A2A80;
+    font-size: 2rem;
+    margin-bottom: 15px;
+  }
+  .intro-card p { 
+    color: #666;
+    font-size: 1.1rem;
+    margin-bottom: 30px;
+    line-height: 1.6;
+  }
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin: 30px 0;
+  }
+  .info-item {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+  }
+  #quizSection { display: none; }
+  .progress-container {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  }
+  .progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+    transition: width 0.3s ease;
+    width: 0%;
+  }
+  .progress-text {
+    text-align: center;
+    color: #666;
+    font-weight: 600;
+  }
+  .quiz-box { 
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    margin: 15px 0;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .quiz-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  }
+  .quiz-box p {
+    font-size: 1.1rem;
+    color: #333;
+    margin-bottom: 15px;
+    font-weight: 500;
+  }
+  .quiz-box label {
+    display: block;
+    padding: 12px 15px;
+    margin: 8px 0;
+    background: #f5f5f5;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+  }
+  .quiz-box label:hover {
+    background: #e8e8ff;
+    border-color: #667eea;
+  }
+  .quiz-box input[type="radio"]:checked + label,
+  .quiz-box label:has(input[type="radio"]:checked) {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: #667eea;
+  }
+  .quiz-box input[type="radio"] {
+    margin-right: 10px;
+  }
+  button { 
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff; 
+    padding: 15px 30px;
+    border: none;
+    border-radius: 12px;
+    margin: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  }
+  button:hover { 
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+  }
+  button:active {
+    transform: translateY(0);
+  }
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+  .button-group {
+    text-align: center;
+    margin-top: 30px;
+  }
+  #careerFields { 
+    display: none;
+    margin-top: 40px;
+    animation: fadeInUp 0.6s ease;
+  }
+  .results-header {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    text-align: center;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  }
+  .results-header h2 {
+    color: #1A2A80;
+    font-size: 2rem;
+    margin-bottom: 10px;
+  }
+  .results-header p {
+    color: #666;
+    font-size: 1.1rem;
+  }
+  .traits-display {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+  }
+  .trait-card {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+  }
+  .trait-card:hover {
+    transform: translateY(-5px);
+  }
+  .trait-card h4 {
+    color: #667eea;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+  }
+  .trait-score {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #1A2A80;
+    margin: 10px 0;
+  }
+  .trait-bar {
+    width: 100%;
+    height: 10px;
+    background: #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 10px;
+  }
+  .trait-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+    transition: width 0.5s ease;
+  }
+  h2, h3 { text-align: center; }
+  .cards { 
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+  }
+  .card { 
+    background: linear-gradient(135deg, #fff 0%, #f8f9ff 100%);
+    padding: 25px;
+    border-radius: 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border: 2px solid transparent;
+  }
+  .card:hover { 
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    border-color: #667eea;
+  }
+  .card h3 {
+    color: #1A2A80;
+    margin-bottom: 10px;
+  }
+  .card p {
+    color: #666;
+    font-size: 0.9rem;
+    margin-top: 10px;
+  }
+  .career-icon {
+    font-size: 3rem;
+    margin-bottom: 10px;
+  }
+  @media (max-width: 768px) {
+    .section { padding: 20px 15px; }
+    .intro-card { padding: 25px; }
+    header h1 { font-size: 1.5rem; }
+    .info-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>🎯 Career Mantra 2.0</h1>
+  <p>Big 5 Personality Test - Discover Your Career Path</p>
+</header>
+
+<section id="introSection" class="section">
+  <div class="intro-card">
+  <h2>Start the Personality Test</h2>
+    <p>Take our comprehensive Big 5 personality assessment to discover your personality traits and get personalized career recommendations tailored just for you!</p>
+    <div class="info-grid">
+      <div class="info-item">⏱️ 10-15 min</div>
+      <div class="info-item">❓ 50 questions</div>
+      <div class="info-item">🎯 Smart matching</div>
+      <div class="info-item">💾 Auto-saved</div>
+    </div>
+    <div style="text-align: center;">
+      <button onclick="startTest()">Start Test</button>
+    </div>
+  </div>
+</section>
+
+<section id="quizSection" class="section">
+  <div class="progress-container">
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+    <div class="progress-text">
+      Question <span id="question-number">1</span> of <span id="total-questions">50</span>
+    </div>
+  </div>
+  <div id="quiz-content"></div>
+  <div class="button-group">
+    <button id="prevBtn" onclick="previousQuestion()" disabled>← Previous</button>
+    <button id="nextBtn" onclick="nextQuestion()">Next →</button>
+    <button id="submitBtn" onclick="finishQuiz()" style="display:none;">Submit Test</button>
+  </div>
+</section>
+
+<section id="careerFields" class="section">
+  <div class="results-header">
+    <h2>🎉 Test Complete!</h2>
+    <p>Your personality profile has been generated</p>
+  </div>
+  
+  <div id="traits-display" class="traits-display"></div>
+  
+  <div style="background: white; border-radius: 20px; padding: 30px; margin-top: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+    <h2 id="careerTitle" style="color: #1A2A80; margin-bottom: 20px;">Recommended Career Fields</h2>
+  <div id="careerCards" class="cards"></div>
+  </div>
+  
+  <div class="button-group" style="margin-top: 30px;">
+    <button onclick="goToResults()">View My Results History</button>
+    <button onclick="location.reload()" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">Retake Test</button>
+  </div>
+</section>
+
+<script>
+// Big 5 Personality Test Questions
+const big5Questions = [
+  // Openness (10 questions)
+  {q: "I enjoy exploring new ideas and concepts.", trait: "openness"},
+  {q: "I have a vivid imagination.", trait: "openness"},
+  {q: "I am interested in abstract thinking.", trait: "openness"},
+  {q: "I appreciate art, music, and creative expression.", trait: "openness"},
+  {q: "I prefer variety over routine.", trait: "openness"},
+  {q: "I am curious about many different things.", trait: "openness"},
+  {q: "I like to try new activities and experiences.", trait: "openness"},
+  {q: "I value artistic and aesthetic experiences.", trait: "openness"},
+  {q: "I prefer complex problems over simple ones.", trait: "openness"},
+  {q: "I am open to unconventional ideas.", trait: "openness"},
+  
+  // Conscientiousness (10 questions)
+  {q: "I am always prepared.", trait: "conscientiousness"},
+  {q: "I pay attention to details.", trait: "conscientiousness"},
+  {q: "I like to keep things tidy and organized.", trait: "conscientiousness"},
+  {q: "I follow a schedule and stick to deadlines.", trait: "conscientiousness"},
+  {q: "I am reliable and dependable.", trait: "conscientiousness"},
+  {q: "I work systematically toward my goals.", trait: "conscientiousness"},
+  {q: "I take time to think things through.", trait: "conscientiousness"},
+  {q: "I complete tasks thoroughly.", trait: "conscientiousness"},
+  {q: "I plan ahead and stay organized.", trait: "conscientiousness"},
+  {q: "I am disciplined and self-controlled.", trait: "conscientiousness"},
+  
+  // Extraversion (10 questions)
+  {q: "I feel comfortable around people.", trait: "extraversion"},
+  {q: "I start conversations easily.", trait: "extraversion"},
+  {q: "I am energetic and enthusiastic.", trait: "extraversion"},
+  {q: "I enjoy being the center of attention.", trait: "extraversion"},
+  {q: "I talk to a lot of different people at parties.", trait: "extraversion"},
+  {q: "I don't mind being called on in class or meetings.", trait: "extraversion"},
+  {q: "I am full of life and enthusiasm.", trait: "extraversion"},
+  {q: "I make friends easily.", trait: "extraversion"},
+  {q: "I feel at ease in social situations.", trait: "extraversion"},
+  {q: "I am outgoing and sociable.", trait: "extraversion"},
+  
+  // Agreeableness (10 questions)
+  {q: "I trust people and believe in their good intentions.", trait: "agreeableness"},
+  {q: "I am interested in other people's feelings.", trait: "agreeableness"},
+  {q: "I feel others' emotions.", trait: "agreeableness"},
+  {q: "I make people feel at ease.", trait: "agreeableness"},
+  {q: "I sympathize with others' feelings.", trait: "agreeableness"},
+  {q: "I take time out for others.", trait: "agreeableness"},
+  {q: "I am not really interested in others.", trait: "agreeableness", reverse: true},
+  {q: "I insult people.", trait: "agreeableness", reverse: true},
+  {q: "I am not interested in other people's problems.", trait: "agreeableness", reverse: true},
+  {q: "I have a soft heart.", trait: "agreeableness"},
+  
+  // Neuroticism (10 questions)
+  {q: "I get stressed out easily.", trait: "neuroticism"},
+  {q: "I worry about things.", trait: "neuroticism"},
+  {q: "I get upset easily.", trait: "neuroticism"},
+  {q: "I have frequent mood swings.", trait: "neuroticism"},
+  {q: "I often feel blue.", trait: "neuroticism"},
+  {q: "I feel comfortable with myself.", trait: "neuroticism", reverse: true},
+  {q: "I am relaxed most of the time.", trait: "neuroticism", reverse: true},
+  {q: "I seldom feel blue.", trait: "neuroticism", reverse: true},
+  {q: "I don't get stressed out easily.", trait: "neuroticism", reverse: true},
+  {q: "I am calm even in tense situations.", trait: "neuroticism", reverse: true}
+];
+
+let currentQuestion = 0;
+let answers = [];
+let scores = {
+  openness: 0,
+  conscientiousness: 0,
+  extraversion: 0,
+  agreeableness: 0,
+  neuroticism: 0
+};
+
+// Career matching algorithm
+const careerDatabase = {
+  high_openness: {
+    careers: ["Creative Director", "Graphic Designer", "Architect", "Writer", "Artist", "Musician", "Research Scientist"],
+    description: "Creative and innovative fields"
+  },
+  high_conscientiousness: {
+    careers: ["Project Manager", "Accountant", "Engineer", "Data Analyst", "Quality Assurance", "Healthcare Professional", "Lawyer"],
+    description: "Detail-oriented and structured roles"
+  },
+  high_extraversion: {
+    careers: ["Sales Representative", "Marketing Manager", "Public Relations", "Event Planner", "Teacher", "Business Consultant", "Human Resources"],
+    description: "People-oriented and leadership roles"
+  },
+  high_agreeableness: {
+    careers: ["Counselor", "Social Worker", "Nurse", "Customer Service", "Therapist", "Non-profit Manager", "Mediator"],
+    description: "Helping and service-oriented careers"
+  },
+  low_neuroticism: {
+    careers: ["Air Traffic Controller", "Surgeon", "Emergency Responder", "Pilot", "Investment Banker", "CEO", "Military Officer"],
+    description: "High-pressure and leadership roles"
+  },
+  balanced: {
+    careers: ["Software Developer", "Product Manager", "Consultant", "Entrepreneur", "Business Analyst", "Marketing Specialist"],
+    description: "Versatile and adaptable careers"
+  }
+};
+
+function getCareerRecommendations(scores) {
+  const recommendations = [];
+  const traits = Object.keys(scores);
+  
+  // Normalize scores (0-100 scale)
+  const normalized = {};
+  traits.forEach(trait => {
+    normalized[trait] = (scores[trait] / 10) * 100;
+  });
+  
+  // Determine high/low traits
+  const highTraits = traits.filter(t => normalized[t] >= 60);
+  const lowTraits = traits.filter(t => normalized[t] <= 40);
+  
+  // Generate recommendations based on trait combinations
+  if (normalized.openness >= 70) {
+    recommendations.push(...careerDatabase.high_openness.careers.slice(0, 3));
+  }
+  if (normalized.conscientiousness >= 70) {
+    recommendations.push(...careerDatabase.high_conscientiousness.careers.slice(0, 3));
+  }
+  if (normalized.extraversion >= 70) {
+    recommendations.push(...careerDatabase.high_extraversion.careers.slice(0, 3));
+  }
+  if (normalized.agreeableness >= 70) {
+    recommendations.push(...careerDatabase.high_agreeableness.careers.slice(0, 3));
+  }
+  if (normalized.neuroticism <= 30) {
+    recommendations.push(...careerDatabase.low_neuroticism.careers.slice(0, 3));
+  }
+  
+  // If balanced, add balanced careers
+  if (recommendations.length === 0 || (highTraits.length === 0 && lowTraits.length === 0)) {
+    recommendations.push(...careerDatabase.balanced.careers.slice(0, 5));
+  }
+  
+  // Remove duplicates and return top 8
+  return [...new Set(recommendations)].slice(0, 8);
+}
+
+const careerIcons = {
+  "Creative Director": "🎨", "Graphic Designer": "✏️", "Architect": "🏗️", "Writer": "✍️", "Artist": "🖼️",
+  "Musician": "🎵", "Research Scientist": "🔬", "Project Manager": "📊", "Accountant": "💰", "Engineer": "⚙️",
+  "Data Analyst": "📈", "Quality Assurance": "✅", "Healthcare Professional": "⚕️", "Lawyer": "⚖️",
+  "Sales Representative": "💼", "Marketing Manager": "📱", "Public Relations": "🤝", "Event Planner": "🎉",
+  "Teacher": "👨‍🏫", "Business Consultant": "💡", "Human Resources": "👥", "Counselor": "🧠", "Social Worker": "🤗",
+  "Nurse": "💉", "Customer Service": "📞", "Therapist": "🩺", "Non-profit Manager": "❤️", "Mediator": "⚖️",
+  "Air Traffic Controller": "✈️", "Surgeon": "🏥", "Emergency Responder": "🚨", "Pilot": "🛫", "Investment Banker": "💹",
+  "CEO": "👔", "Military Officer": "🎖️", "Software Developer": "💻", "Product Manager": "📦", "Consultant": "🎯",
+  "Entrepreneur": "🚀", "Business Analyst": "📋", "Marketing Specialist": "📢"
+};
+
+function startTest() {
+  document.getElementById("introSection").style.display = "none";
+  document.getElementById("quizSection").style.display = "block";
+  answers = [];
+  currentQuestion = 0;
+  scores = {
+    openness: 0,
+    conscientiousness: 0,
+    extraversion: 0,
+    agreeableness: 0,
+    neuroticism: 0
+  };
+  displayQuestion();
+}
+
+function displayQuestion() {
+  const question = big5Questions[currentQuestion];
+  const progress = ((currentQuestion + 1) / big5Questions.length) * 100;
+  
+  document.getElementById("progress-fill").style.width = progress + "%";
+  document.getElementById("question-number").textContent = currentQuestion + 1;
+  document.getElementById("total-questions").textContent = big5Questions.length;
+  
+  const quizContent = document.getElementById("quiz-content");
+  quizContent.innerHTML = `
+    <div class="quiz-box">
+      <p><b>Q${currentQuestion + 1}.</b> ${question.q}</p>
+      <label style="background: ${answers[currentQuestion] === 1 ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : '#f5f5f5'}; color: ${answers[currentQuestion] === 1 ? 'white' : '#333'};">
+        <input type="radio" name="answer" value="1" ${answers[currentQuestion] === 1 ? 'checked' : ''} onchange="selectAnswer(1)">
+        Strongly Agree
+      </label>
+      <label style="background: ${answers[currentQuestion] === 2 ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : '#f5f5f5'}; color: ${answers[currentQuestion] === 2 ? 'white' : '#333'};">
+        <input type="radio" name="answer" value="2" ${answers[currentQuestion] === 2 ? 'checked' : ''} onchange="selectAnswer(2)">
+        Agree
+      </label>
+      <label style="background: ${answers[currentQuestion] === 3 ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : '#f5f5f5'}; color: ${answers[currentQuestion] === 3 ? 'white' : '#333'};">
+        <input type="radio" name="answer" value="3" ${answers[currentQuestion] === 3 ? 'checked' : ''} onchange="selectAnswer(3)">
+        Neutral
+      </label>
+      <label style="background: ${answers[currentQuestion] === 4 ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : '#f5f5f5'}; color: ${answers[currentQuestion] === 4 ? 'white' : '#333'};">
+        <input type="radio" name="answer" value="4" ${answers[currentQuestion] === 4 ? 'checked' : ''} onchange="selectAnswer(4)">
+        Disagree
+      </label>
+      <label style="background: ${answers[currentQuestion] === 5 ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : '#f5f5f5'}; color: ${answers[currentQuestion] === 5 ? 'white' : '#333'};">
+        <input type="radio" name="answer" value="5" ${answers[currentQuestion] === 5 ? 'checked' : ''} onchange="selectAnswer(5)">
+        Strongly Disagree
+      </label>
+    </div>
+  `;
+  
+  document.getElementById("prevBtn").disabled = currentQuestion === 0;
+  document.getElementById("nextBtn").style.display = currentQuestion === big5Questions.length - 1 ? "none" : "inline-block";
+  document.getElementById("submitBtn").style.display = currentQuestion === big5Questions.length - 1 ? "inline-block" : "none";
+}
+
+function selectAnswer(value) {
+  answers[currentQuestion] = parseInt(value);
+}
+
+function nextQuestion() {
+  if (answers[currentQuestion] === undefined) {
+    alert("Please select an answer before proceeding.");
+    return;
+  }
+  if (currentQuestion < big5Questions.length - 1) {
+    currentQuestion++;
+    displayQuestion();
+  }
+}
+
+function previousQuestion() {
+  if (currentQuestion > 0) {
+    currentQuestion--;
+    displayQuestion();
+  }
+}
+
+function finishQuiz() {
+  if (answers.length !== big5Questions.length || answers.some(a => a === undefined)) {
+    alert("Please answer all questions before submitting!");
+    return;
+  }
+  
+  // Calculate scores
+  big5Questions.forEach((question, index) => {
+    const answer = answers[index];
+    let score = 6 - answer; // Invert scale (1=5, 2=4, etc.)
+    
+    if (question.reverse) {
+      score = answer; // For reverse-coded questions
+    }
+    
+    scores[question.trait] += score;
+  });
+  
+  // Generate results
+  const result = {
+    date: new Date().toISOString(),
+    scores: {...scores},
+    normalized: {},
+    careers: getCareerRecommendations(scores),
+    timestamp: Date.now()
+  };
+  
+  // Normalize scores
+  Object.keys(scores).forEach(trait => {
+    result.normalized[trait] = (scores[trait] / 10) * 100;
+  });
+  
+  // Save to localStorage
+  let history = JSON.parse(localStorage.getItem('careerMantraResults') || '[]');
+  history.push(result);
+  localStorage.setItem('careerMantraResults', JSON.stringify(history));
+  localStorage.setItem('lastResult', JSON.stringify(result));
+  
+  // Display results
+  displayResults(result);
+}
+
+function displayResults(result) {
+  document.getElementById("quizSection").style.display = "none";
+  document.getElementById("careerFields").style.display = "block";
+  
+  // Display trait scores
+  const traitsDisplay = document.getElementById("traits-display");
+  traitsDisplay.innerHTML = '';
+  
+  const traitNames = {
+    openness: "Openness",
+    conscientiousness: "Conscientiousness",
+    extraversion: "Extraversion",
+    agreeableness: "Agreeableness",
+    neuroticism: "Neuroticism"
+  };
+  
+  Object.keys(result.normalized).forEach(trait => {
+    const card = document.createElement("div");
+    card.className = "trait-card";
+    const score = Math.round(result.normalized[trait]);
+    card.innerHTML = `
+      <h4>${traitNames[trait]}</h4>
+      <div class="trait-score">${score}%</div>
+      <div class="trait-bar">
+        <div class="trait-fill" style="width: ${score}%"></div>
+      </div>
+    `;
+    traitsDisplay.appendChild(card);
+  });
+  
+  // Display career recommendations
+  const careerCards = document.getElementById("careerCards");
+  careerCards.innerHTML = '';
+  
+  result.careers.forEach(career => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="career-icon">${careerIcons[career] || "💼"}</div>
+      <h3>${career}</h3>
+      <p>Match your personality profile</p>
+    `;
+    careerCards.appendChild(card);
+  });
+}
+
+function goToResults() {
+  window.location.href = "results.html";
+}
+</script>
+</body>
+</html>
